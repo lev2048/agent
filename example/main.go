@@ -1,23 +1,33 @@
 package main
 
 import (
-	"encoding/json"
 	"fmt"
+	"math"
 	"time"
 
-	"github.com/lev2048/agent"
+	"agent"
 )
 
 func main() {
-	agent := agent.NewAgent("xxx")
-	go agent.Start()
-	for i := 0; i < 20; i++ {
-		data := agent.GetData()
-		json, _ := json.Marshal(data)
-		fmt.Println(string(json))
+	ag := agent.NewAgent("agent")
+	go ag.Start(false)
+	for i := 0; i < 200; i++ {
+		data := ag.GetData()
+		if data.CPU != 0 {
+			fmt.Println(
+				fmt.Sprintf("%d%%", int(math.Ceil(data.CPU*100))),
+				fmt.Sprintf("%d%%", int(math.Ceil((float64(data.MemUsed)/float64(data.MemTotal))*100))),
+				"up "+agent.UnitConver(float64(data.NetworkTx))+"/s",
+				"down "+agent.UnitConver(float64(data.NetworkRx))+"/s",
+				agent.UnitConver(float64(data.NetworkIn)),
+				agent.UnitConver(float64(data.NetworkOut)),
+			)
+		}
+		//json, _ := json.Marshal(data)
+		//fmt.Println(string(json))
 		time.Sleep(time.Duration(1) * time.Second)
 	}
-	if agent.Stop() {
+	if ag.Stop() {
 		fmt.Println("stop success")
 	}
 	fmt.Println("exit...")
