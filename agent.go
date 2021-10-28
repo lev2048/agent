@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"fmt"
 	"io"
+	"math"
 	"net"
 	"os"
 	"os/exec"
@@ -356,6 +357,28 @@ func (at *Agent) numberCover(data, nType string) (value interface{}) {
 	}
 }
 
+func UnitConver(sizeInByte float64) string {
+	suffixes := [5]string{"B", "KB", "MB", "GB", "TB"}
+	base := math.Log(sizeInByte) / math.Log(1024)
+	getSize := Round(math.Pow(1024, base-math.Floor(base)), .5, 2)
+	getSuffix := suffixes[int(math.Floor(base))]
+	return strconv.FormatFloat(getSize, 'f', -1, 64) + " " + string(getSuffix)
+}
+
+func Round(val float64, roundOn float64, places int) (newVal float64) {
+	var round float64
+	pow := math.Pow(10, float64(places))
+	digit := pow * val
+	_, div := math.Modf(digit)
+	if div >= roundOn {
+		round = math.Ceil(digit)
+	} else {
+		round = math.Floor(digit)
+	}
+	newVal = round / pow
+	return
+}
+
 //GetData 获取采集数据汇总
 func (at *Agent) GetData() Data {
 	return at.data
@@ -371,7 +394,7 @@ func (at *Agent) Start() {
 		}()
 		for {
 			select {
-			case <-at.run:
+			case <-run:
 				return
 			default:
 				at.getLostRate()
