@@ -1,10 +1,11 @@
 package main
 
 import (
-	"agent"
 	"encoding/json"
 	"fmt"
 	"time"
+
+	"github.com/lev2048/agent"
 )
 
 func main() {

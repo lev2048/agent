@@ -1,4 +1,4 @@
-module agent
+module github.com/lev2048/agent
 
 go 1.16
 
