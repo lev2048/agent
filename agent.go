@@ -387,7 +387,10 @@ func (at *Agent) GetData() Data {
 	return at.data
 }
 
-func (at *Agent) Start(isCheckNet bool) {
+var isCheckNet bool = false
+
+func (at *Agent) Start(CheckNet bool) {
+	isCheckNet = CheckNet
 	at.run = make(chan bool, 1)
 	at.exit = make(chan int, 2)
 	if isCheckNet {
@@ -410,7 +413,6 @@ func (at *Agent) Start(isCheckNet bool) {
 	go func(run <-chan bool, exit chan int) {
 		defer func() {
 			exit <- 0
-			fmt.Println("stop query")
 		}()
 		for {
 			select {
@@ -444,10 +446,19 @@ func (at *Agent) Stop() bool {
 			fmt.Println("stop timeOut")
 			return false
 		default:
-			if len(at.exit) == 2 {
-				close(at.exit)
-				at.exit = nil
-				return true
+			//todo 整理扩展逻辑
+			if !isCheckNet {
+				if len(at.exit) == 1 {
+					close(at.exit)
+					at.exit = nil
+					return true
+				}
+			} else {
+				if len(at.exit) == 2 {
+					close(at.exit)
+					at.exit = nil
+					return true
+				}
 			}
 		}
 	}

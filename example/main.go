@@ -11,7 +11,7 @@ import (
 func main() {
 	ag := agent.NewAgent("agent")
 	go ag.Start(false)
-	for i := 0; i < 200; i++ {
+	for i := 0; i < 5; i++ {
 		data := ag.GetData()
 		if data.CPU != 0 {
 			fmt.Println(
