@@ -358,6 +358,9 @@ func (at *Agent) numberCover(data, nType string) (value interface{}) {
 }
 
 func UnitConver(sizeInByte float64) string {
+	if sizeInByte == 0 {
+		return "0 B"
+	}
 	suffixes := [5]string{"B", "KB", "MB", "GB", "TB"}
 	base := math.Log(sizeInByte) / math.Log(1024)
 	getSize := round(math.Pow(1024, base-math.Floor(base)), .5, 2)
@@ -384,24 +387,26 @@ func (at *Agent) GetData() Data {
 	return at.data
 }
 
-func (at *Agent) Start() {
+func (at *Agent) Start(isCheckNet bool) {
 	at.run = make(chan bool, 1)
 	at.exit = make(chan int, 2)
-	go func(run <-chan bool, exit chan int) {
-		defer func() {
-			exit <- 0
-			fmt.Println("stop ping")
-		}()
-		for {
-			select {
-			case <-run:
-				return
-			default:
-				at.getLostRate()
+	if isCheckNet {
+		go func(run <-chan bool, exit chan int) {
+			defer func() {
+				exit <- 0
+				fmt.Println("stop ping")
+			}()
+			for {
+				select {
+				case <-run:
+					return
+				default:
+					at.getLostRate()
+				}
+				time.Sleep(time.Duration(5) * time.Second)
 			}
-			time.Sleep(time.Duration(5) * time.Second)
-		}
-	}(at.run, at.exit)
+		}(at.run, at.exit)
+	}
 	go func(run <-chan bool, exit chan int) {
 		defer func() {
 			exit <- 0
@@ -418,11 +423,13 @@ func (at *Agent) Start() {
 				at.getCpuUseInfo()
 				at.getTrafficStats()
 				at.getTUPDCount()
-				at.getChinaNetStatus()
-				at.getWordNetStatus()
-				at.getLostRate()
 				at.getNetSpeed()
-				at.getLoadAvg()
+				if isCheckNet {
+					at.getChinaNetStatus()
+					at.getWordNetStatus()
+					at.getLostRate()
+					at.getLoadAvg()
+				}
 			}
 			time.Sleep(time.Duration(1) * time.Second)
 		}
